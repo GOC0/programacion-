@@ -1,0 +1,560 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX 50
+
+typedef struct
+{
+    int id;
+    char nombre[MAX];
+    char trabajo[MAX];
+    char num_celular[MAX];
+    char comp_movil[MAX];
+} Pasajeros;
+
+typedef struct
+{
+    int ano;
+    char marca[MAX];
+    int ficha;
+    char proprietario[MAX];
+} Carros;
+
+typedef struct
+{
+    int dia;
+    int mes;
+    int ano;
+    int hora;
+    int minutos;
+    int segundos;
+} FECHA;
+
+typedef struct
+{
+    int fichaCarro;
+    int idPasajero;
+    int pago;
+    int devuelta;
+    FECHA fechaserv;
+    int tiempo;
+} Servicios;
+
+int mostrarMenu();
+int mostrarMenuPasajeros();
+int mostrarMenuServicios();
+int menuCarro();
+
+void capturarPasajeros(FILE *, Pasajeros *);
+void capturarcarro(FILE *,FILE*, Carros *);
+void capturarServicio(FILE *, FILE *, FILE *, Servicios *);
+
+void mostrarPasajeros(FILE *);
+void mostrarcarros(FILE *);
+void mostrarServicios(FILE *);
+
+int main()
+{
+    char rutaPasajeros[] = "pasajeros.dat";
+    char rutaCarro[] = "carros.dat";
+    char rutaServicio[] = "servicio.dat";
+
+    Carros carro;
+    Pasajeros pasajero;
+    Servicios servicio;
+
+    int seleccion;
+
+    FILE *archivoCarro = fopen(rutaCarro, "a+b");
+    FILE *archivoPasajeros = fopen(rutaPasajeros, "a+b");
+    FILE *archivoServicio = fopen(rutaServicio, "a+b");
+
+    do
+    {
+        seleccion = mostrarMenu();
+
+        switch (seleccion)
+        {
+        case 0:
+            printf("Hasta luego!");
+            break;
+        case 1:
+            capturarPasajeros(archivoPasajeros, &pasajero);
+            break;
+        case 2:
+            capturarcarro(archivoCarro, &carro);
+            break;
+        case 3:
+            capturarServicio(archivoPasajeros, archivoCarro, archivoServicio, &servicio);
+            break;
+        case 4:
+            mostrarPasajeros(archivoPasajeros);
+            break;
+        case 5:
+            mostrarcarros(archivoCarro);
+            break;
+        case 6:
+            mostrarServicios(archivoServicio);
+            break;
+        }
+    } while (seleccion != 0);
+
+    return 0;
+}
+
+void capturarPasajeros(FILE *archivoPasajeros, Pasajeros *pasajero)
+{
+    printf("Digite el ID: ");
+    fflush(stdin);
+    scanf("%d", &pasajero->id);
+
+    printf("Digite el nombre completo: ");
+    fflush(stdin);
+    gets(pasajero->nombre);
+
+    printf("Digite el lugar de trabajo: ");
+    fflush(stdin);
+    gets(pasajero->trabajo);
+
+    printf("Digite el numero de celular: ");
+    fflush(stdin);
+    gets(pasajero->num_celular);
+
+    printf("Digite la compañia telefonica: ");
+    fflush(stdin);
+    gets(pasajero->comp_movil);
+
+    fwrite(pasajero, sizeof(Pasajeros), 1, archivoPasajeros);
+}
+
+void capturarcarro(FILE *archivoCarro, Carros *carros)
+{
+    printf("ano: ");
+    fflush(stdin);
+    scanf("%d", &carros->ano);
+
+    printf("marca: ");
+    fflush(stdin);
+    gets(carros->marca);
+
+    printf("ficha: ");
+    fflush(stdin);
+    scanf("%d", &carros->ficha);
+
+    printf("propietario: ");
+    fflush(stdin);
+    gets(carros->proprietario);
+
+    fwrite(carros, sizeof(Carros), 1, archivoCarro);
+}
+
+void capturarServicio(FILE *archivoPasajeros, FILE *archivoCarro, FILE *archivoServicio, Servicios *servicio)
+{
+    Pasajeros pasajeroActual;
+    Carros carroActual;
+
+    fseek(archivoPasajeros, 0, SEEK_END);
+    int tamanoPasajero = ftell(archivoPasajeros);
+    fseek(archivoPasajeros, 0, SEEK_SET);
+
+    fseek(archivoCarro, 0, SEEK_END);
+    int tamanoCarro = ftell(archivoCarro);
+    fseek(archivoCarro, 0, SEEK_SET);
+
+    printf("\nPasajeros\n");
+    while (ftell(archivoPasajeros) < tamanoPasajero)
+    {
+        fread(&pasajeroActual, sizeof(Pasajeros), 1, archivoPasajeros);
+
+        printf("ID: %d\t\tNombre: %s\n",
+               pasajeroActual.id, pasajeroActual.nombre);
+    }
+
+    printf("\nCarro\n");
+    while (ftell(archivoCarro) < tamanoCarro)
+    {
+        fread(&carroActual, sizeof(Carros), 1, archivoCarro);
+
+        printf("Ficha: %d\t\tPropietario: %s\n",
+               carroActual.ficha, carroActual.proprietario);
+    }
+
+    printf("Digite el ID del pasajero: ");
+    fflush(stdin);
+    scanf("%d", &servicio->idPasajero);
+
+    printf("Digite la ficha del carro: ");
+    fflush(stdin);
+    scanf("%d", &servicio->fichaCarro);
+
+    printf("Digite el monto pagado: ");
+    fflush(stdin);
+    scanf("%d", &servicio->pago);
+
+    printf("Digite la devuelta: ");
+    fflush(stdin);
+    scanf("%d", &servicio->devuelta);
+
+    printf("Digite la fecha de servicio: ");
+    fflush(stdin);
+    scanf("%d/%d/%d", &servicio->fechaserv.dia, &servicio->fechaserv.mes, &servicio->fechaserv.ano);
+
+    printf("Digite la hora de servicio: ");
+    fflush(stdin);
+    scanf("%d:%d:%d", &servicio->fechaserv.hora, &servicio->fechaserv.minutos, &servicio->fechaserv.segundos);
+
+    fwrite(servicio, sizeof(Servicios), 1, archivoServicio);
+}
+
+int mostrarMenu()
+{
+    char opcion;
+    printf("\n1: Capturar Pasajero.\n");
+    printf("2: Capturar Carro.\n");
+    printf("3: Registrar Servicio.\n");
+    printf("4: Menu Pasajeros.\n");
+    printf("5: Menu Carros.\n");
+    printf("6: Menu Servicios.\n");
+    printf("\n0: Salir.\n");
+    printf("\nSeleccione: ");
+    fflush(stdin);
+    opcion = getchar();
+
+    switch (opcion)
+    {
+    case '1':
+        return 1;
+    case '2':
+        return 2;
+    case '3':
+        return 3;
+    case '4':
+        return 4;
+    case '5':
+        return 5;
+    case '6':
+        return 6;
+    default:
+        return 0;
+    }
+}
+
+int mostrarMenuPasajeros()
+{
+    char opcion;
+
+    printf("\n1: Mostrar Todos los pasajeros.\n");
+    printf("2: Todos los pasajeros especificando un lugar de trabajo.\n");
+    printf("3: Todos los pasajeros especificando una compañia telefonica.\n");
+    printf("4: Todos ---\n");
+    printf("5: Todos ---\n");
+    printf("\n0: Regresar.\n");
+    printf("\nSeleccione: ");
+    fflush(stdin);
+    opcion = getchar();
+
+    switch (opcion)
+    {
+    case '1':
+        return 1;
+    case '2':
+        return 2;
+    case '3':
+        return 3;
+    case '4':
+        return 4;
+    case '5':
+        return 5;
+    default:
+        return 0;
+    }
+}
+
+int mostrarMenuServicios()
+{
+    char opcion;
+
+    printf("\n1: Mostrar Todos los servicios.\n");
+    printf("2: Todos los pasajeros especificando un lugar de trabajo.\n");
+    printf("3: Todos los pasajeros especificando una compañia telefonica.\n");
+    printf("4: Todos ---\n");
+    printf("5: Todos ---\n");
+    printf("\n0: Regresar.\n");
+    printf("\nSeleccione: ");
+    fflush(stdin);
+    opcion = getchar();
+
+    switch (opcion)
+    {
+    case '1':
+        return 1;
+    case '2':
+        return 2;
+    case '3':
+        return 3;
+    case '4':
+        return 4;
+    case '5':
+        return 5;
+    default:
+        return 0;
+    }
+}
+
+int menuCarro()
+{
+    int tomar;
+    printf("\n1: mostrar todos los carros\n");
+    printf("2: mostrar carros segun un rango de anos\n");
+    printf("3: mostrar carros de una marca espicifica\n");
+    printf("4: mostrar carros cuyos costo esta en un rango\n");
+    printf("5: mostrar carros de un propietario especifico\n");
+    printf("6: mostrar carros montados en un rango de fecha\n");
+    printf("0: para terminar\n");
+
+    printf(" el numero de su selecion: ");
+    scanf("%d", &tomar);
+
+    return tomar;
+}
+
+void mostrarPasajeros(FILE *archivoPasajeros)
+{
+    Pasajeros pasajeroActual;
+    char ciudadFiltro[MAX];
+    char compFiltro[MAX];
+    int seleccion;
+
+    do
+    {
+        fseek(archivoPasajeros, 0, SEEK_END);
+        int tamano = ftell(archivoPasajeros);
+        fseek(archivoPasajeros, 0, SEEK_SET);
+
+        seleccion = mostrarMenuPasajeros();
+
+        switch (seleccion)
+        {
+        case 0:
+            break;
+        case 1:
+            while (ftell(archivoPasajeros) < tamano)
+            {
+                fread(&pasajeroActual, sizeof(Pasajeros), 1, archivoPasajeros);
+
+                printf("\nID: %d\nNombre: %s\nLugar de Trabajo: %s\nNumero Telefonico: %s\nCompañia Telefonica: %s\n",
+                       pasajeroActual.id, pasajeroActual.nombre, pasajeroActual.trabajo, pasajeroActual.num_celular, pasajeroActual.comp_movil);
+            }
+            break;
+        case 2:
+
+            printf("Escriba un lugar de trabajo: ");
+            scanf("%s", &ciudadFiltro);
+            while (ftell(archivoPasajeros) < tamano)
+            {
+                fread(&pasajeroActual, sizeof(Pasajeros), 1, archivoPasajeros);
+                if (strcmp(pasajeroActual.trabajo, ciudadFiltro) == 0)
+                {
+                    printf("\nID: %d\nNombre: %s\nLugar de Trabajo: %s\nNumero Telefonico: %s\nCompañia Telefonica: %s\n",
+                           pasajeroActual.id, pasajeroActual.nombre, pasajeroActual.trabajo, pasajeroActual.num_celular, pasajeroActual.comp_movil);
+                }
+            }
+            break;
+        case 3:
+
+            printf("Escriba una compaña telefonica: ");
+            scanf("%s", &compFiltro);
+            while (ftell(archivoPasajeros) < tamano)
+            {
+                fread(&pasajeroActual, sizeof(Pasajeros), 1, archivoPasajeros);
+                if (strcmp(pasajeroActual.comp_movil, compFiltro) == 0)
+                {
+                    printf("\nID: %d\nNombre: %s\nLugar de Trabajo: %s\nNumero Telefonico: %s\nCompañia Telefonica: %s\n",
+                           pasajeroActual.id, pasajeroActual.nombre, pasajeroActual.trabajo, pasajeroActual.num_celular, pasajeroActual.comp_movil);
+                }
+            }
+
+            break;
+        case 4:
+
+            break;
+        case 5:
+
+            break;
+        }
+
+    } while (seleccion != 0);
+}
+
+void mostrarServicios(FILE *archivoServicio)
+{
+    int selecion, comparacion;
+    int rangoinf, rangosup;
+    char marca[50], propietario[50];
+    Servicios servicioActual;
+
+    do
+    {
+
+        fseek(archivoServicio, 0, SEEK_END);
+        int tamano = ftell(archivoServicio);
+        fseek(archivoServicio, 0, SEEK_SET);
+
+        selecion = mostrarMenuServicios();
+
+        switch (selecion)
+        {
+        case 1:
+            while (ftell(archivoServicio) < tamano)
+            {
+                fread(&servicioActual, sizeof(Servicios), 1, archivoServicio);
+
+                printf("\n ID Pasajero: %d  \n Fucha Carro: %d \n Monto Pagado: %d \n Devueltas: %d \n Fecha del servicio: %d/%d/%d \n Hora del Servicio: %d:%d:%d\n",
+                       servicioActual.idPasajero, servicioActual.fichaCarro, servicioActual.pago, servicioActual.devuelta,
+                       servicioActual.fechaserv.dia, servicioActual.fechaserv.mes, servicioActual.fechaserv.ano,
+                       servicioActual.fechaserv.hora, servicioActual.fechaserv.minutos, servicioActual.fechaserv.segundos);
+            }
+            break;
+        }
+    } while (selecion != 0);
+}
+
+void mostrarcarros(FILE *archivoCarro, FILE* archivoServicio)
+{
+    int selecion, comparacion;
+    int rangoinf, rangosup;
+    char marca[50], propietario[50];
+    Carros carrosActual;
+    Servicios servicioActual;
+
+    do
+    {
+
+        fseek(archivoCarro, 0, SEEK_END);
+        int tamano = ftell(archivoCarro);
+        fseek(archivoCarro, 0, SEEK_SET);
+
+        
+
+        selecion = menuCarro();
+
+        switch (selecion)
+        {
+        case 1:
+            while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+
+                printf("\n ano: %d  \n ficha: %d \n marca: %s \n proprietario: %s", carrosActual.ano, carrosActual.ficha,
+                       carrosActual.marca, carrosActual.proprietario);
+            }
+            break;
+        case 2:
+            printf("dame el primer rango: ");
+            scanf("%d", &rangoinf);
+            printf("\n dame el segundo rango: ");
+            scanf("%d", &rangosup);
+
+            while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+                if (carrosActual.ano >= rangoinf && carrosActual.ano <= rangosup)
+                {
+                    printf("\n ano: %d  \n ficha: %d \n marca: %s ", carrosActual.ano, carrosActual.ficha,
+                           carrosActual.marca);
+                }
+            }
+            break;
+        case 3:
+            printf("dame la marca que buscas");
+            fflush(stdin);
+            gets(marca);
+
+            while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+                if ((comparacion = strcmp(marca, carrosActual.marca)) == 0)
+                {
+                    printf("\n ano: %d  \n ficha: %d \n proprietario: %s", carrosActual.ano, carrosActual.ficha,
+                           carrosActual.proprietario);
+                }
+            }
+            break;
+        case 4:
+            printf("dame el rango inferior");
+            scanf("%d", &rangoinf);
+            printf("dame el rango superior");
+            scanf("%d", &rangosup);
+
+              while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+
+                 fseek(archivoServicio, 0, SEEK_END);
+                 int tamanoservicio = ftell(archivoCarro);
+                 fseek(archivoServicio, 0, SEEK_SET);
+
+                 while(ftell(archivoServicio)<tamanoservicio)
+                 {
+
+                 if ( carrosActual.ficha == servicioActual.fichaCarro && servicioActual.pago>=rangoinf && servicioActual.pago<=rangosup)
+                 {
+                     printf("\n ano: %d  \n ficha: %d \n marca: %s \n proprietario: %s", carrosActual.ano, carrosActual.ficha,
+                       carrosActual.marca, carrosActual.proprietario);
+
+                 }
+                 }
+            }
+            
+
+            break;
+        case 5:
+            printf("nombre del proprietario: ");
+            fflush(stdin);
+            gets(propietario);
+
+            while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+                if ((comparacion = strcmp(propietario, carrosActual.proprietario)) == 0)
+                {
+                    printf("\n ano: %d  \n ficha: %d \n marca: %s", carrosActual.ano, carrosActual.ficha,
+                           carrosActual.marca);
+                }
+            }
+            break;
+        case 6:
+        int dia,mes,ano;
+        int d2,m2,an2;
+            printf("dame dia/mes/ano: ");
+            scanf("%d/%d/%d", &dia,&mes,&ano);
+            printf("\n dame limite superior dia/mes/anos: ");
+            scanf("&d/%d,%d", &d2,&m2,&an2);
+
+            while (ftell(archivoCarro) < tamano)
+            {
+                fread(&carrosActual, sizeof(Carros), 1, archivoCarro);
+
+                 fseek(archivoServicio, 0, SEEK_END);
+                 int tamanoservicio = ftell(archivoCarro);
+                 fseek(archivoServicio, 0, SEEK_SET);
+
+                 while(ftell(archivoServicio)<tamanoservicio)
+                 {
+
+                 if ( carrosActual.ficha == servicioActual.fichaCarro && servicioActual.fechaserv.ano>=ano &&servicioActual.fechaserv.ano<=an2 
+                 && servicioActual.fechaserv.mes>=mes && servicioActual.fechaserv.mes<=m2 && servicioActual.fechaserv.dia>=dia && servicioActual.fechaserv.dia<=d2 ) 
+                 {
+                     printf("\n ano: %d  \n ficha: %d \n marca: %s \n proprietario: %s", carrosActual.ano, carrosActual.ficha,
+                       carrosActual.marca, carrosActual.proprietario);
+
+                 }
+                 }
+            }
+
+            break;
+        }
+    } while (selecion != 0);
+}
